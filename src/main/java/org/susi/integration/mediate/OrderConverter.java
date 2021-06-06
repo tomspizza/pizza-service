@@ -5,7 +5,7 @@ import java.util.List;
 
 public class OrderConverter {
 	
-	public String convert(Object object) {
+	public List<String> convert(Object object) {
 		
 		List<String> orderArray = new ArrayList<String>();
 

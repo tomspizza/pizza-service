@@ -6,7 +6,6 @@ import java.util.UUID;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.integration.config.EnableIntegration;
-import org.springframework.jms.core.JmsTemplate;
 import org.springframework.messaging.MessageChannel;
 import org.springframework.messaging.support.GenericMessage;
 import org.springframework.web.bind.annotation.PostMapping;
@@ -33,25 +32,13 @@ public class APizzaRestReceiverController {
 	@Qualifier("pizzaInputJmsWriterChannel")
     MessageChannel pizzaInputJmsWriterChannel;
 	
-	@Autowired
-	@Qualifier("solaceTopicSenderTemplate")
-	JmsTemplate solaceTopicSenderTemplate;
-	
 
 	@PostMapping(value = "/add")
 	public String replay(@RequestBody String request) {
 		System.out.println("1111 Pizza order received @REST interface order= " + request);
 		GenericMessage<String> gmIn = getInputMessage(request);
-		//azureLogChannel.send(gmIn);
-		//pizzaInputJmsWriterChannel.send(gmIn);
-		
-		
-		Map<String, Object> headers = new HashMap<String, Object>();
-	    headers.put(LoggerConfig.PEID, UUID.randomUUID().toString());
-	 	GenericMessage<String> gm =  new GenericMessage<String>("hellow world", headers);
-	 	solaceTopicSenderTemplate.convertAndSend(centralConfig.getInputJmsDestination(), gm);
-		
-		
+		azureLogChannel.send(gmIn);
+		pizzaInputJmsWriterChannel.send(gmIn);
 		return request;
 	}
 

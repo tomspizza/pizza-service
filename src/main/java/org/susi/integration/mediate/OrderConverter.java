@@ -5,13 +5,13 @@ import java.util.List;
 
 public class OrderConverter {
 	
-	public List<String> convert(Object object) {
+	public static List<String> convert(String orderString) {
 		
 		List<String> orderArray = new ArrayList<String>();
 
 		try {
 			String template = "<order>\n\t<name>%s</name>\n\t<count>%s</count>\n</order>";
-			String[] orders = object.split("\n");
+			String[] orders = orderString.split("\n");
 			if (orders.length > 0) {
 				for (String order : orders) {
 					String[] pizzaAndCount = order.split(",");

@@ -5,7 +5,7 @@
 	<modelVersion>4.0.0</modelVersion>
 
 	<groupId>org.susi.integration</groupId>
-	<artifactId>pizza-service</artifactId>
+	<artifactId>pizza_service</artifactId>
 	<version>1.0.0</version>
 	<packaging>jar</packaging>
 
@@ -23,16 +23,16 @@
  	 </properties>
 
 	<dependencies>
-		<!-- dependency>
-			<groupId>com.solacesystems</groupId>
-			<artifactId>sol-jms</artifactId>
-			<version>10.2.1</version>
-		</dependency -->
+	
+	<dependency>
+		<groupId>org.susi.integration</groupId>
+		<artifactId>codeobe_logging</artifactId>
+		<version>1.0.0</version>
+	</dependency>
 		
-	    <dependency>
-			<groupId>com.solace.spring.boot</groupId>
-			<artifactId>solace-jms-spring-boot-starter</artifactId>
-			<version>3.2.0</version>
+		<dependency>
+			<groupId>org.springframework.boot</groupId>
+			<artifactId>spring-boot-starter-activemq</artifactId>
 		</dependency>
 		
 		<dependency>
@@ -183,7 +183,8 @@
 			        </gitDescribe>
 			    </configuration>
 			</plugin>
-			
+
+			<!--
 			<plugin>
 			  <groupId>com.spotify</groupId>
 			  <artifactId>dockerfile-maven-plugin</artifactId>
@@ -196,18 +197,6 @@
                           </goals>
                           <phase>install</phase>
                         </execution>
-                        
-                        <!--execution>
-                          <id>tag-latest</id>
-                          <goals>
-                            <goal>tag</goal>
-                            <goal>push</goal>
-                          </goals>
-                          <configuration>
-                            <tag>latest</tag>
-                          </configuration>
-                          <phase>install</phase>
-                        </execution -->
                         
                         <execution>
                           <id>tag-version</id>
@@ -222,12 +211,14 @@
                         </execution>
                     </executions>
 		    <configuration>
-			    <useConfigFile>true</useConfigFile>
+			    <useMavenSettingsForAuth>true</useMavenSettingsForAuth>
 			    <repository>susisacr.azurecr.io/integration/${project.artifactId}</repository>
 				<skip>false</skip>
 			  </configuration>
+			 
+			  
 			</plugin>
-            
+            -->
 		</plugins>
 	</build>
 

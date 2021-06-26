@@ -10,9 +10,6 @@ import org.springframework.integration.http.config.EnableIntegrationGraphControl
 @EnableIntegrationGraphController(allowedOrigins = "*")
 public class EurekaClientApplication {
 
-	public EurekaClientApplication() {
-		System.out.println("      ____           ____   _       \n     / ___'  _   _  / ___' (_)\n     \\___ | | | | | \\___ | | |\n      ___)| | |_| |  ___)| | |\n     |____| |_____| |____| |_| ");
-	}
 	
 	public static void main(String[] args) {
 		SpringApplication.run(EurekaClientApplication.class, args);

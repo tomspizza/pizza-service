@@ -17,7 +17,8 @@ public class OrderConverter {
 					String[] pizzaAndCount = order.split(",");
 					String name = pizzaAndCount[0];
 					String count = pizzaAndCount[1];
-					orderArray.add(String.format(template, name, count));
+					//orderArray.add(String.format(template, name, count));
+					orderArray.add(order.toUpperCase());
 				}
 			}
 		} catch (Exception e) {

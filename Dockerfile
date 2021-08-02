@@ -13,6 +13,7 @@
 # Tell Docker we are going to use this port
 ##EXPOSE 8081
 
+////ussee  bbuuiillddxx
 
 FROM openjdk:8-jre-alpine3.9
 COPY target/*.jar /demo.jar

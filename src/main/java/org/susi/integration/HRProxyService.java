@@ -8,11 +8,11 @@ import org.springframework.integration.http.config.EnableIntegrationGraphControl
 @EnableDiscoveryClient
 @SpringBootApplication
 @EnableIntegrationGraphController(allowedOrigins = "*")
-public class PizzaServiceDemo {
+public class HRProxyService {
 
 	
 	public static void main(String[] args) {
-		SpringApplication.run(PizzaServiceDemo.class, args);
+		SpringApplication.run(HRProxyService.class, args);
 	}
 }
 

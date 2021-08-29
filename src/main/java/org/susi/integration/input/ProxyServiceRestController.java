@@ -1,6 +1,5 @@
 package org.susi.integration.input;
 
-
 import java.io.IOException;
 import java.util.ArrayList;
 import java.util.List;
@@ -33,30 +32,21 @@ public class ProxyServiceRestController  extends CodeobeListener  {
 	
 	@Value("${output.http_endpoint}")
 	String outputEndpoint;
-	
 
 	@PostMapping(value = "/order")
 	public String order(@RequestBody String request) {
 		System.out.println("1. Request received @REST interface request= " + request);
 		TextMessage tm1 = codeobeLog.logMessageBeforeProcess(request);
-		List<TextMessage> processedList = process(tm1);
-		
-		List<String> reponseList = new ArrayList<String>();
-		for (TextMessage m : processedList) {
-			String response = send(m);
-			reponseList.add(response);
-		}
-		 
+		List<String> reponseList = process(tm1);
+
 		String singleResponse = listToString(reponseList); 
 		System.out.println("5. Sending reposnse out = " + singleResponse);
 		return singleResponse;
 	}
 
 
-
-
 	@Override
-	public List<TextMessage> process(TextMessage tm) {
+	public List<String> process(TextMessage tm) {
 		
 		String msg = getPayload(tm);
 		System.out.println("2. Start processing request =" + msg);
@@ -76,47 +66,54 @@ public class ProxyServiceRestController  extends CodeobeListener  {
 			processedList.add(tm2);
 		}
 		
-		return processedList;
+		//Make sure you call send method from process to make it work for resends.replays
+		List<String> results  = send(processedList);
+		return results;
 	}
 	
 	
 	@Override
-	public String send(TextMessage tm)  {
+	public List<String> send(List<TextMessage> processedList)  {
 		
-		String msg = getPayload(tm);
-		System.out.println("3. sendToHttpEndpoint ....." + msg);
-		CloseableHttpClient client = HttpClients.createDefault();
-	    HttpPost httpPost = new HttpPost(outputEndpoint);
-
-	    String tmOut = null;
-	    try {
-		    StringEntity entity = new StringEntity(tm.getText());
-		    httpPost.setEntity(entity);
-		    httpPost.setHeader("Accept", "application/json");
-		    httpPost.setHeader("Content-type", "application/json");
-		  
-		    CloseableHttpResponse response = client.execute(httpPost);
-		    if (response != null && response.getStatusLine().getStatusCode() == 200) {
-		    	tmOut = EntityUtils.toString(response.getEntity());
-		    	codeobeLog.logResponse(tm, tmOut);
-				System.out.println("3.1 logResponse ....." );
-		    } else {
-		    	tmOut = "Error from endpoint";
-		    	codeobeLog.logResponseError(tm, tmOut);
-				System.out.println("3.2 logResponseError ....." );
+		List<String> reponseList = new ArrayList<String>();
+		for (TextMessage tm : processedList)  {
+			String msg = getPayload(tm);
+			
+			System.out.println("3. sendToHttpEndpoint ....." + msg);
+			CloseableHttpClient client = HttpClients.createDefault();
+		    HttpPost httpPost = new HttpPost(outputEndpoint);
+	
+		    String tmOut = null;
+		    try {
+			    StringEntity entity = new StringEntity(tm.getText());
+			    httpPost.setEntity(entity);
+			    httpPost.setHeader("Accept", "application/json");
+			    httpPost.setHeader("Content-type", "application/json");
+			  
+			    CloseableHttpResponse response = client.execute(httpPost);
+			    if (response != null && response.getStatusLine().getStatusCode() == 200) {
+			    	tmOut = EntityUtils.toString(response.getEntity());
+			    	codeobeLog.logResponse(tm, tmOut);
+					System.out.println("3.1 logResponse ....." );
+			    } else {
+			    	tmOut = "Error from endpoint";
+			    	codeobeLog.logResponseError(tm, tmOut);
+					System.out.println("3.2 logResponseError ....." );
+			    }
+		    }  catch (Exception ex) {
+		    	tmOut = "Error sening message out";
+			    codeobeLog.logResponseError(tm, tmOut);
+				System.out.println("3.3 logResponseException ....." );
+		    } finally {
+		    	try {
+					client.close();
+				} catch (IOException e) {
+					e.printStackTrace();
+				}
 		    }
-	    }  catch (Exception ex) {
-	    	tmOut = "Error sening message out";
-		    codeobeLog.logResponseError(tm, tmOut);
-			System.out.println("3.3 logResponseException ....." );
-	    } finally {
-	    	try {
-				client.close();
-			} catch (IOException e) {
-				e.printStackTrace();
-			}
-	    }
-	    return tmOut;
+		    reponseList.add(tmOut);
+		}
+	    return reponseList;
 	}
 
 	

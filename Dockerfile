@@ -16,4 +16,5 @@
 
 FROM openjdk:8-jre-alpine3.9
 COPY target/*.jar /demo.jar
+COPY application.properties /application.properties
 CMD ["java", "-jar", "/demo.jar"]

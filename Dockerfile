@@ -17,6 +17,9 @@ FROM openjdk:8-jre-alpine3.9
 COPY target/*.jar /demo.jar
 COPY application.properties /application.properties
 CMD ["java", "-jar", "/demo.jar"]
+
+
+#DO NOT MODIFY FOLLOWING
 ARG carg1=htpp://localhost:8080
 ARG carg2=htpp://localhost:8080
 ARG carg3=codeobe
@@ -25,3 +28,4 @@ ENV cenv1=${carg1}
 ENV cenv2=${carg2}
 ENV cenv3=${carg3}
 ENV cenv4=${carg4}
+#DO NOT MODIFY ABOVE

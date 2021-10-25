@@ -36,9 +36,12 @@ public class ProxyServiceRestController  extends CodeobeListener  {
 	@Value("${output.http_endpoint}")
 	String outputEndpoint;
 	
+	@Value("${app.version}")
+        String version;
+	
 	@GetMapping("/hello/{user}")
 	public String hello(@PathVariable String user) {
-		return "Hello " +  user + " " +new Date().toString();
+		return "Hello " +  user + " " + version +  " " +new Date().toString();
 	}
 
 	@PostMapping(value = "/order")

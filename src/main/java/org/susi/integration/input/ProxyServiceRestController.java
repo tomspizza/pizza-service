@@ -4,7 +4,8 @@ import java.io.IOException;
 import java.util.ArrayList;
 import java.util.Date;
 import java.util.List;
-import javax.jms.TextMessage;
+import java.util.UUID;
+
 import org.apache.http.client.methods.HttpPost;
 import org.apache.http.entity.StringEntity;
 import org.apache.http.impl.client.CloseableHttpClient;
@@ -26,7 +27,7 @@ import org.susi.integration.CodeobeLog;
 
 @RestController
 @RequestMapping("/hrservice-proxy")
-@EnableIntegration
+//@EnableIntegration
 public class ProxyServiceRestController  extends CodeobeListener  {
 	
 
@@ -36,19 +37,23 @@ public class ProxyServiceRestController  extends CodeobeListener  {
 	@Value("${output.http_endpoint}")
 	String outputEndpoint;
 	
-	@Value("${app.version}")
-        String version;
+	String peid;
 	
-	@GetMapping("/hello/{user}")
-	public String hello(@PathVariable String user) {
-		return "Hello " +  user + " " + version +  " " +new Date().toString();
-	}
+//	@GetMapping("/hello/{user}")
+//	public String healthCheck(@PathVariable String user) {
+//		return "Hello " +  user + " " +new Date().toString();
+//	}
 
+	
+	
 	@PostMapping(value = "/order")
 	public String order(@RequestBody String request) {
 		System.out.println("1. Request received @REST interface request= " + request);
-		TextMessage tm1 = codeobeLog.logMessageBeforeProcess(request);
-		List<String> reponseList = process(tm1);
+		
+		peid = UUID.randomUUID().toString();
+		codeobeLog.logMessageBeforeProcess(request, peid); //just send to Q
+		
+		List<String> reponseList = processAndSend(request, peid);
 
 		String singleResponse = listToString(reponseList); 
 		System.out.println("5. Sending reposnse out = " + singleResponse);
@@ -57,38 +62,37 @@ public class ProxyServiceRestController  extends CodeobeListener  {
 
 
 	@Override
-	public List<String> process(TextMessage tm) {
+	public List<String> processAndSend(String msg, String peid) {
 		
-		String msg = getPayload(tm);
+		//String msg = getPayload(tm);
 		System.out.println("2. Start processing request =" + msg);
 		List<String> orderArray = convert(msg);
-		List<TextMessage> processedList = new ArrayList<TextMessage>();
+		List<String> processedList = new ArrayList<String>();
 		
-		TextMessage tm2 = null;
 		if (orderArray != null) {
 			for (String order : orderArray) {
 				System.out.println("2.1 Processing array element =" + order);
-				tm2 = codeobeLog.logMessageAfterProcess(tm, order);
-				processedList.add(tm2);
+				codeobeLog.logMessageAfterProcess(order, peid); //send to Q
+				processedList.add(order);
 			}
 		} else {
 			System.out.println("2.2 Pizza order error=" + msg);
-			tm2 = codeobeLog.logErrorAfterProcess(tm, "Invalid Request");
-			processedList.add(tm2);
+			codeobeLog.logErrorAfterProcess("Invalid Request", peid); //send to q
+			processedList.add("Invalid Request");
 		}
 		
 		//Make sure you call send method from process to make it work for resends.replays
-		List<String> results  = send(processedList);
+		List<String> results  = send(processedList, peid);
 		return results;
 	}
 	
 	
 	@Override
-	public List<String> send(List<TextMessage> processedList)  {
+	public List<String> send(List<String> processedList, String peid)  {
 		
 		List<String> reponseList = new ArrayList<String>();
-		for (TextMessage tm : processedList)  {
-			String msg = getPayload(tm);
+		for (String msg  : processedList)  {
+			 
 			
 			System.out.println("3. sendToHttpEndpoint ....." + msg);
 			CloseableHttpClient client = HttpClients.createDefault();
@@ -96,7 +100,7 @@ public class ProxyServiceRestController  extends CodeobeListener  {
 	
 		    String tmOut = null;
 		    try {
-			    StringEntity entity = new StringEntity(tm.getText());
+			    StringEntity entity = new StringEntity(msg);
 			    httpPost.setEntity(entity);
 			    httpPost.setHeader("Accept", "application/json");
 			    httpPost.setHeader("Content-type", "application/json");
@@ -104,16 +108,16 @@ public class ProxyServiceRestController  extends CodeobeListener  {
 			    CloseableHttpResponse response = client.execute(httpPost);
 			    if (response != null && response.getStatusLine().getStatusCode() == 200) {
 			    	tmOut = EntityUtils.toString(response.getEntity());
-			    	codeobeLog.logResponse(tm, tmOut);
+			    	codeobeLog.logResponse(tmOut, peid);
 					System.out.println("3.1 logResponse ....." );
 			    } else {
 			    	tmOut = "Error from endpoint";
-			    	codeobeLog.logResponseError(tm, tmOut);
+			    	codeobeLog.logResponseError(tmOut, peid);
 					System.out.println("3.2 logResponseError ....." );
 			    }
 		    }  catch (Exception ex) {
 		    	tmOut = "Error sening message out";
-			    codeobeLog.logResponseError(tm, tmOut);
+			    codeobeLog.logResponseError(tmOut, peid);
 				System.out.println("3.3 logResponseException ....." );
 		    } finally {
 		    	try {

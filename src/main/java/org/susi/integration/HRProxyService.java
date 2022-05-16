@@ -8,6 +8,7 @@ import org.springframework.integration.http.config.EnableIntegrationGraphControl
 @EnableDiscoveryClient
 @SpringBootApplication
 @EnableIntegrationGraphController(allowedOrigins = "*")
+//i have some classes in our.susi.integregin, pls look that too
 public class HRProxyService {
 
 	
